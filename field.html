@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Hygraph Field Visibility Toggle App</title>
+
+    <link rel="stylesheet" type="text/css" href="./style.css" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/@graphcms/zoid@9.0.64-alpha.3/lib/zoid.min.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/@graphcms/app-sdk@0.0.5/dist/app-sdk.umd.production.min.js"></script>
+
+    <script>
+      ((props = null) => {
+
+        function parseFieldNames() {
+          try {
+            return props.extension.fieldConfig.FIELDS_TO_TOGGLE.replace(/\s+/g, '').split(',');
+          } catch (error) {
+            console.error('Failed to parse fields', error.message);
+            return [];
+          }
+        }
+
+        function getToggleState() {
+          const checkbox = document.getElementById('checkbox');
+          return checkbox.checked;
+        }
+
+        function setToggleState(state) {
+          const checkbox = document.getElementById('checkbox');
+          checkbox.checked = state;
+        }
+
+        function setVisibility(isVisible) {          
+          const fields = parseFieldNames();
+          const visibilityMap = {};
+          for (let i = 0; i < fields.length; i++) {            
+            if (isVisible) visibilityMap[fields[i]] = "READ_WRITE";
+            else visibilityMap[fields[i]] = "HIDDEN";
+          }       
+          props.form.setFieldsVisibility(visibilityMap);   
+        }
+
+        function handleToggle() {
+          const isVisible = getToggleState();
+          setVisibility(isVisible);
+          props.onChange(isVisible);
+        }
+
+        function doPrep() {
+          //Prep checkbox
+          if (props && props.value) setToggleState(props.value);
+
+          //Show toggle and add event listener
+          const toggle = document.getElementById('toggle');
+          toggle.style.display = 'inline-block';
+          toggle.addEventListener('click', () => handleToggle())
+
+          //Set field visibility according to toggle state
+          setVisibility(getToggleState());
+        }
+
+        async function init() {
+          try {
+            window["@graphcms/app-sdk"].init({
+              onProps: function(newProps) {
+                props = newProps;
+                if (props.value === null) {
+                  //Handle "Clear" button
+                  setToggleState(false);
+                  handleToggle();
+                } 
+
+              }
+            }).then((initialState) => {
+              props = initialState.props;              
+              if (initialState.status === "ok") {
+                if (props.isTableCell) {
+                  //Don't render anything when in table view
+                  return;
+                }
+                console.log(props); 
+                doPrep();                
+              }
+            });
+          } catch(error) {
+            console.error("Failed to init app:", error.message);
+            console.error("- error code:", error.code);
+          }
+        }
+
+        document.addEventListener("DOMContentLoaded", init);
+        
+      })();
+      
+    </script>    
+
+  </head>
+  <body>
+    <label class="toggle" id="toggle">
+      <input type="checkbox" id="checkbox">
+      <span class="slider"></span>
+    </label>  
+  </body>
+</html>

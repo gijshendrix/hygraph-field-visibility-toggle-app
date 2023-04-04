@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Hygraph Entry Lock App</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@graphcms/zoid@9.0.64-alpha.3/lib/zoid.min.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/@graphcms/app-sdk@0.0.5/dist/app-sdk.umd.production.min.js"></script>
+
+    <script>
+      ((props = null) => {
+    
+        async function doPrep() {
+          if (!props) return;
+
+          await props.updateInstallation({
+            status: "COMPLETED",
+          });
+
+          props.redirectParent([props.redirectParent.location,props.context.project.id,props.context.environment.name,"apps"].join("/"));
+        }
+
+        async function init() {
+          try {
+            window["@graphcms/app-sdk"].init({
+              onProps: function(newProps) {
+                props = newProps;
+                console.log(props);
+                console.log(props.redirectParent.origin);
+              }
+            }).then((initialState) => {
+              props = initialState.props;              
+              if (initialState.status === "ok") {
+                doPrep();
+              }
+            });
+          } catch(error) {
+            console.error("Failed to init app:", error.message);
+            console.error("- error code:", error.code);
+          }
+        }
+
+        document.addEventListener("DOMContentLoaded", init);
+      })();
+      
+    </script>    
+
+  </head>
+  <body>
+  </body>
+</html>
