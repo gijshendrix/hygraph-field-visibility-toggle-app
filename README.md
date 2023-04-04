@@ -10,4 +10,4 @@ Install this app through the [installation link](https://app.hygraph.com/apps/fi
 
 ## References
 
-* [Hygraph Documentation for Apps](https://graphcms.com/docs/app-framework)
+* [Hygraph Documentation for Apps](https://hygraph.com/docs/app-framework)
